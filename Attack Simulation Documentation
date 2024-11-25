@@ -1,0 +1,93 @@
+# Attack Simulation Report
+
+## Objective
+To identify and simulate common attack vectors within an Active Directory (AD) environment and document results to implement effective defensive measures.
+
+---
+
+## Tools and Methods Used
+
+1. **BloodHound**  
+   - **Purpose:** Used to identify attack paths and relationships within the AD structure.
+   - **Execution:** Data collection with SharpHound.
+     ```powershell
+     .\SharpHound.exe -c All
+     ```
+   - **Output:** Generated .json files with data imported into the BloodHound interface for visual analysis.
+
+2. **Mimikatz**  
+   - **Purpose:** Credential dumping and testing for weak or improperly secured credentials.
+   - **Execution:**
+     ```powershell
+     mimikatz # sekurlsa::logonpasswords
+     ```
+   - **Output:** Retrieved plaintext credentials and NTLM hashes from memory.
+
+3. **PowerShell**  
+   - **Purpose:** Enumerate user privileges and validate defensive configurations.
+   - **Example Command:**
+     ```powershell
+     Get-ADGroupMember -Identity "Domain Admins"
+     ```
+
+---
+
+## Simulation Steps
+
+### 1. **Reconnaissance with BloodHound**
+   - **Setup:** Installed BloodHound and Neo4j on a client machine.
+   - **Action:** Used SharpHound to collect data about AD relationships.
+   - **Findings:** Identified excessive permissions for non-privileged accounts, including a standard user with direct access to privileged group memberships.
+
+### 2. **Credential Dumping with Mimikatz**
+   - **Setup:** Ran Mimikatz as Administrator on a client machine.
+   - **Action:** Dumped login credentials and NTLM hashes.
+   - **Findings:** Recovered plaintext passwords of several users, including a Domain Admin account with weak credentials.
+
+### 3. **Privilege Escalation**
+   - **Setup:** Using collected credentials and BloodHound data, attempted privilege escalation.
+   - **Action:** Accessed a Domain Admin account by using NTLM pass-the-hash techniques.
+     ```
+     mimikatz # sekurlsa::pth /user:admin /domain:lab.local /ntlm:<hash>
+     ```
+   - **Findings:** Successfully escalated privileges and gained full control over the AD environment.
+
+---
+
+## Results
+
+| Tool          | Attack Vector                        | Results                       |
+|---------------|--------------------------------------|-------------------------------|
+| BloodHound    | Privilege Relationship Analysis      | Identified misconfigured roles and excessive permissions. |
+| Mimikatz      | Credential Dumping                   | Retrieved sensitive credentials, including Domain Admin hashes. |
+| PowerShell    | Privilege Enumeration                | Confirmed access levels of compromised accounts.          |
+
+---
+
+## Recommendations and Defensive Measures
+
+### 1. **Apply the Principle of Least Privilege**
+   - **Before:** Non-privileged users had excessive group memberships.
+   - **After:**
+     ```powershell
+     Remove-ADGroupMember -Identity "Domain Admins" -Members "StandardUser"
+     ```
+
+### 2. **Strengthen Password Policies**
+   - **Before:** Weak passwords allowed (e.g., "Password123").
+   - **After:**
+     ```powershell
+     Set-ADDefaultDomainPasswordPolicy -ComplexityEnabled $true -MinimumPasswordLength 12 -LockoutThreshold 5
+     ```
+
+### 3. **Enable Credential Guard**
+   - **Before:** Credentials stored in memory were vulnerable to dumping.
+   - **After:** Implemented Credential Guard on all critical systems.
+
+### 4. **Monitor and Audit Privileged Actions**
+   - **Before:** No auditing of administrative actions.
+   - **After:** Configured advanced audit policies:
+     ```powershell
+     auditpol /set /subcategory:"Logon" /success:enable /failure:enable
+     ```
+
