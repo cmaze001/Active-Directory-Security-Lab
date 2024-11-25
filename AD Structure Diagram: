@@ -1,0 +1,70 @@
+
+
+#### Tools Required
+- Microsoft Visio, Lucidchart, or draw.io for creating the diagram.
+- Use PowerShell commands to extract AD structure data.
+
+---
+
+#### Step 1: Gather Data from Your AD Environment
+
+1. **Export a list of OUs:**
+   ```powershell
+   Get-ADOrganizationalUnit -Filter * | Select-Object Name, DistinguishedName | Export-Csv -Path OUs.csv -NoTypeInformation
+   ```
+
+2. **Export a list of Users and Groups:**
+   ```powershell
+   Get-ADUser -Filter * | Select-Object Name, SamAccountName, Enabled | Export-Csv -Path Users.csv -NoTypeInformation
+   Get-ADGroup -Filter * | Select-Object Name, GroupScope, GroupCategory | Export-Csv -Path Groups.csv -NoTypeInformation
+   ```
+
+3. **Document Group Memberships:**
+   ```powershell
+   Get-ADGroupMember -Identity "Domain Admins" | Select-Object Name, SamAccountName | Export-Csv -Path DomainAdmins.csv -NoTypeInformation
+   ```
+
+---
+
+#### Step 2: Design the Diagram
+
+1. **Structure Your Diagram:**
+   - Include the following key components:
+     - **Root Domain:** Display the domain name (e.g., `lab.local`).
+     - **OUs:** Arrange organizational units hierarchically (e.g., `IT`, `HR`, `Finance`).
+     - **Users and Groups:** Nest users and groups under their respective OUs.
+     - **Trust Relationships:** If applicable, indicate trust relationships between domains.
+
+2. **Example Structure:**
+   ```plaintext
+   lab.local (Root Domain)
+   ├── IT (OU)
+   │   ├── IT_Admins (Group)
+   │   └── John Doe (User)
+   ├── HR (OU)
+   │   └── HR_Managers (Group)
+   ├── Finance (OU)
+   │   └── Jane Smith (User)
+   ```
+
+3. **Use a Diagramming Tool:**
+   - Open your chosen tool (e.g., draw.io).
+   - Create a **rectangle** for each component:
+     - Domain: Root node.
+     - OUs: Nested rectangles within the domain.
+     - Users and Groups: Smaller nested shapes within OUs.
+   - Connect components with **arrows** or **lines** to represent relationships.
+
+---
+
+#### Step 3: Annotate the Diagram
+
+- Label all components clearly.
+- Add notes to explain:
+  - Group purposes (e.g., "IT_Admins: Administrators for IT systems").
+  - Security measures (e.g., "HR_Managers: Enforced strong password policies").
+
+---
+
+**"The AD diagram depicts the root domain (`lab.local`) with three organizational units (OUs): IT, HR, and Finance. Each OU contains specific user accounts and groups to simulate a realistic organizational structure. Trust relationships between domains are not configured for this lab."**
+
