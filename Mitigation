@@ -1,0 +1,52 @@
+
+### Mitigating Password Policy Vulnerabilities  
+
+#### Before Configuration
+- **Password Complexity Disabled:** Users could set simple passwords (e.g., "password").
+- **Password Length Minimum:** 6 characters.
+- **Account Lockout Threshold:** Disabled (unlimited failed login attempts).
+
+To view current settings:
+```powershell
+Get-ADDefaultDomainPasswordPolicy | Select-Object ComplexityEnabled, MinimumPasswordLength, LockoutThreshold
+```
+
+**Output:**
+```plaintext
+ComplexityEnabled: False
+MinimumPasswordLength: 6
+LockoutThreshold: 0
+```
+
+---
+
+#### After Configuration
+- **Password Complexity Enabled:** Ensures passwords include upper/lowercase letters, numbers, and symbols.
+- **Minimum Password Length:** Increased to 12 characters.
+- **Account Lockout Threshold:** Set to 5 invalid attempts, with a 15-minute lockout duration.
+
+To update settings:
+```powershell
+Set-ADDefaultDomainPasswordPolicy -ComplexityEnabled $true -MinimumPasswordLength 12 -LockoutThreshold 5 -LockoutDuration 15
+```
+
+To confirm the new settings:
+```powershell
+Get-ADDefaultDomainPasswordPolicy | Select-Object ComplexityEnabled, MinimumPasswordLength, LockoutThreshold
+```
+
+**Output:**
+```plaintext
+ComplexityEnabled: True
+MinimumPasswordLength: 12
+LockoutThreshold: 5
+```
+
+---
+
+### Validation
+1. Attempt to set a weak password (e.g., "password").
+   - Result: **Blocked.**
+2. Simulate five incorrect login attempts with a valid user account.
+   - Result: **Account locked for 15 minutes.**
+
